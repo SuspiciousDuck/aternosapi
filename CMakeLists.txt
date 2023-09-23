@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.0.0)
 project(aternosapi)
 
 find_package(cpr REQUIRED)
-find_package(libxml2 REQUIRED)
 find_package(cryptopp REQUIRED)
 
 include_directories(src)
