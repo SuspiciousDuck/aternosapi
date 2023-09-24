@@ -2,8 +2,8 @@
 An API I made in C++ to manage Minecraft servers.
 # Building
 Requirements: <br>
-[libcpr](https://www.github.com/libcpr/cpr): Used to send posts and requests to aternos. <br>
-[NodeJS](https://nodejs.org/en): Used for a niche part in the script, hopefully phased out once a suitable replacement is found. <br>
+[libcpr](https://github.com/libcpr/cpr): Used to send posts and requests to aternos. <br>
+[QuickJSpp](https://github.com/ftk/quickjspp): Used to evaluate AJAX_TOKEN. Too lazy to put a different solution. <br>
 [cryptopp-cmake](https://github.com/abdes/cryptopp-cmake): Used to encrypt MD5, required to log in. <br>
 [cmake](https://cmake.org/): Used to build the project. <br>
 ```
