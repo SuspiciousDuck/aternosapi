@@ -1,16 +1,24 @@
+#include <cstring>
 #include <string>
 #include <algorithm>
+#include <quickjs/quickjs.h>
 #include "Javascript.hpp"
 
-std::string Javascript::eval(const std::string& g) { std::string code = g;
-    std::replace(code.begin(), code.end(), '"', '\''); // remove double quote conflicts
-    code = "console.log("+code+");";
-    std::string command = "node -e \"" +  code + "\"";
-    FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) return "";
-    char buffer[128]; std::string result = "";
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) result += buffer;
-    pclose(pipe);
-    std::replace(result.begin(), result.end(), '\n', '\0');
-    return result;
+std::string Javascript::eval(std::string g) {
+    JSRuntime *rt = JS_NewRuntime();
+    JSContext *ctx = JS_NewContext(rt);
+    JSValue result = JS_Eval(ctx, g.c_str(), strlen(g.c_str()), "<eval>", JS_EVAL_TYPE_GLOBAL);
+    std::string result_string;
+    
+    if (!JS_IsException(result)) {
+        const char *result_str = JS_ToCString(ctx, result);
+        result_string = std::string(result_str);
+        JS_FreeCString(ctx, result_str);
+    }
+
+    JS_FreeValue(ctx, result);
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+
+    return result_string;
 }

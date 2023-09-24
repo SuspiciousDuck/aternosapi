@@ -3,5 +3,5 @@
 
 class Javascript {
     public:
-    std::string eval(const std::string&);
+    std::string eval(std::string);
 };

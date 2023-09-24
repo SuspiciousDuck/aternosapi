@@ -1,12 +1,13 @@
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <cpr/cpr.h>
-#include <random>
 #include "Aternos.hpp"
 #include "Javascript.hpp"
 #include "Encryption.hpp"
 
 Aternos::Aternos() {
+    encrypt = Encryption();
     cpr::Header headers = {{"User-Agent","Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0"}};
     cpr::Response response = cpr::Get(cpr::Url{"https://aternos.org/go"},headers);
 
@@ -29,8 +30,8 @@ void Aternos::legitAjax(std::string html) { std::string result = getStringBetwee
 }
 
 void Aternos::generateAjaxToken() {
-    const std::string key = Encryption().Base36Encode(Encryption().Mathrandom()),
-    value = Encryption().Base36Encode(Encryption().Mathrandom());
+    const std::string key = encrypt.Base36Encode(encrypt.Mathrandom());
+    const std::string value = encrypt.Base36Encode(encrypt.Mathrandom());
     gen_token = key+":"+value;
 }
 
@@ -42,13 +43,18 @@ void Aternos::buildURL() {
     LOGINURL = "https://aternos.org"+result;
 }
 
-bool Aternos::login(std::string user, std::string pass) { std::string password = Encryption().MD5(pass);
+bool Aternos::login(std::string user, std::string pass) { std::string password = encrypt.MD5(pass);
     cpr::Response r = cpr::Post(cpr::Url{LOGINURL},
                    cpr::Body{"user="+user+"&password="+password},
                    cpr::Header{{"Cookie", cookies}},
                    cpr::Header{{"User-Agent","Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0"}});
-    cookies = r.cookies[0].GetName()+"="+r.cookies[0].GetValue()+";";
-    return r.status_code == 200;
+    for (auto& cookie: r.cookies) {
+        if (cookie.GetName().find("SESSION")) {
+            cookies = cookie.GetName()+"="+cookie.GetValue()+";";
+        }
+    }
+    std::cout << cookies << "\n";
+    return r.text.find("\"success\":true");
 }
 
 std::string Aternos::FindLineWithString(const std::string& input, const std::string& searchString) {

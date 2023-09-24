@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cpr/cpr.h>
+#include "Encryption.hpp"
 
 class Aternos {
     public:
@@ -18,4 +19,5 @@ class Aternos {
     std::string gen_token;
     std::string LOGINURL;
     std::string cookies;
+    Encryption encrypt;
 };
