@@ -1,6 +1,7 @@
-#include <cstdlib>
 #include <string>
 #include <iostream>
+#include <libxml2/libxml/HTMLparser.h>
+#include <libxml2/libxml/xpath.h>
 #include <cpr/cpr.h>
 #include "Aternos.hpp"
 #include "Javascript.hpp"
@@ -15,6 +16,28 @@ Aternos::Aternos() {
     generateAjaxToken();
     buildURL();
     genCookies();
+}
+
+std::vector<std::string> Aternos::getServers() { std::vector<std::string> result = {};
+    std::string html = request("/servers").text;
+    xmlDocPtr doc = htmlReadDoc((const xmlChar*)html.c_str(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
+    xmlNodePtr root = xmlDocGetRootElement(doc);
+
+    xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+    xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((const xmlChar*)"//*[contains(concat(\" \",normalize-space(@class),\" \"),\" servercard \")]", xpathCtx);
+    if (xpathObj) {
+        xmlNodeSetPtr nodes = xpathObj->nodesetval;
+        for (int i = 0; i < nodes->nodeNr; ++i) {
+            xmlNodePtr node = nodes->nodeTab[i];
+            auto title = xmlGetProp(node, (xmlChar*)"title");
+            result.emplace_back((std::string)reinterpret_cast<char*>(title));
+        }
+        xmlXPathFreeObject(xpathObj);
+    }
+    xmlXPathFreeContext(xpathCtx);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+    return result;
 }
 
 cpr::Response Aternos::request(std::string url) {
@@ -53,8 +76,7 @@ bool Aternos::login(std::string user, std::string pass) { std::string password =
             cookies = cookie.GetName()+"="+cookie.GetValue()+";";
         }
     }
-    std::cout << cookies << "\n";
-    return r.text.find("\"success\":true");
+    return cookies.find("SESSION");
 }
 
 std::string Aternos::FindLineWithString(const std::string& input, const std::string& searchString) {

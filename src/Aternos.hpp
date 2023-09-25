@@ -7,6 +7,7 @@ class Aternos {
     public:
     Aternos();
     bool login(std::string, std::string);
+    std::vector<std::string> getServers();
     cpr::Response request(std::string);
     private:
     std::string FindLineWithString(const std::string&, const std::string&);
