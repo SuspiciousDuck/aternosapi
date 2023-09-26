@@ -1,11 +1,11 @@
 #include <string>
 #include <iostream>
-#include <libxml2/libxml/HTMLparser.h>
-#include <libxml2/libxml/xpath.h>
 #include <cpr/cpr.h>
+#include <optional>
 #include "Aternos.hpp"
 #include "Javascript.hpp"
 #include "Encryption.hpp"
+#include "WebParser.hpp"
 
 Aternos::Aternos() {
     encrypt = Encryption();
@@ -18,26 +18,25 @@ Aternos::Aternos() {
     genCookies();
 }
 
-std::vector<std::string> Aternos::getServers() { std::vector<std::string> result = {};
+std::vector<Aternos::Server> Aternos::getServers() {
     std::string html = request("/servers").text;
-    xmlDocPtr doc = htmlReadDoc((const xmlChar*)html.c_str(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
-    xmlNodePtr root = xmlDocGetRootElement(doc);
-
-    xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
-    xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((const xmlChar*)"//*[contains(concat(\" \",normalize-space(@class),\" \"),\" servercard \")]", xpathCtx);
-    if (xpathObj) {
-        xmlNodeSetPtr nodes = xpathObj->nodesetval;
-        for (int i = 0; i < nodes->nodeNr; ++i) {
-            xmlNodePtr node = nodes->nodeTab[i];
-            auto title = xmlGetProp(node, (xmlChar*)"title");
-            result.emplace_back((std::string)reinterpret_cast<char*>(title));
+    WebParser webparser{html};
+    std::optional<xmlNodeSetPtr> nodes = webparser.EvalXPath("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" servercard \")]");
+    if (nodes != nullptr) {
+        for (int i = 0; i < xmlXPathNodeSetGetLength((xmlNodeSetPtr&)nodes); ++i) {
+            xmlNodePtr node = ((xmlNodeSetPtr&)nodes)->nodeTab[i];
+            Server server;
+            server.name = (char*)xmlGetProp(node, (xmlChar*)"title");
+            auto child = node->children;
+            while (child != nullptr) {
+                if (xmlHasProp(child, (xmlChar*)"data-id") != nullptr) { server.id = (char*)xmlGetProp(child, (xmlChar*)"data-id"); break; }
+                else { child = child->next; }
+            }
+            Servers.emplace_back(server);
         }
-        xmlXPathFreeObject(xpathObj);
     }
-    xmlXPathFreeContext(xpathCtx);
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-    return result;
+    webparser.cleanWebParser();
+    return Servers;
 }
 
 cpr::Response Aternos::request(std::string url) {
@@ -58,7 +57,11 @@ void Aternos::generateAjaxToken() {
     gen_token = key+":"+value;
 }
 
-void Aternos::genCookies() { std::string key = gen_token.substr(0, gen_token.find(':')), value = gen_token.substr(gen_token.find(':') + 1); cookies = "ATERNOS_SEC_"+key+"="+value+";"; }
+void Aternos::genCookies() {
+    std::string key = gen_token.substr(0, gen_token.find(':')),
+    value = gen_token.substr(gen_token.find(':') + 1);
+    cookies = "ATERNOS_SEC_"+key+"="+value+";";
+}
 
 void Aternos::buildURL() {
     std::string result = "/ajax/account/login?SEC=";
@@ -76,7 +79,7 @@ bool Aternos::login(std::string user, std::string pass) { std::string password =
             cookies = cookie.GetName()+"="+cookie.GetValue()+";";
         }
     }
-    return cookies.find("SESSION");
+    return cookies.find("SESSION") != std::string::npos;
 }
 
 std::string Aternos::FindLineWithString(const std::string& input, const std::string& searchString) {

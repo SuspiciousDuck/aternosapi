@@ -5,9 +5,13 @@
 
 class Aternos {
     public:
+    struct Server {
+        std::string name;
+        std::string id;
+    };
     Aternos();
     bool login(std::string, std::string);
-    std::vector<std::string> getServers();
+    std::vector<Server> getServers();
     cpr::Response request(std::string);
     private:
     std::string FindLineWithString(const std::string&, const std::string&);
@@ -16,6 +20,7 @@ class Aternos {
     void generateAjaxToken();
     void genCookies();
     void buildURL();
+    std::vector<Server> Servers;
     std::string AJAX_TOKEN;
     std::string gen_token;
     std::string LOGINURL;
