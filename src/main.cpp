@@ -10,6 +10,7 @@ int main() {
     std::cout << "Logged in successfully\n";
     for (auto server:aternos.getServers()) {
         std::cout << server.name << ", " << server.id << "\n";
+        aternos.ServerStatus(server);
     }
     return 0;
 }
