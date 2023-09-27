@@ -8,6 +8,7 @@ find_package(cpr REQUIRED)
 find_package(cryptopp REQUIRED)
 find_package(QuickJS REQUIRED)
 find_package(LibXml2 REQUIRED)
+find_package(nlohmann_json REQUIRED)
 find_quickjs()
 configure_quickjs()
 

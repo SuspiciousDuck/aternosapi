@@ -2,10 +2,19 @@
 #include <iostream>
 #include <cpr/cpr.h>
 #include <optional>
+#include <algorithm>
+#include <nlohmann/json.hpp>
 #include "Aternos.hpp"
 #include "Javascript.hpp"
 #include "Encryption.hpp"
 #include "WebParser.hpp"
+
+bool operator==(const Aternos::Server& lhs, const Aternos::Server& rhs) {
+    bool result = true;
+    if (lhs.name != rhs.name) { result = false; }
+    if (lhs.id != rhs.id) { result = false; }
+    return result;
+}
 
 Aternos::Aternos() {
     encrypt = Encryption();
@@ -18,10 +27,28 @@ Aternos::Aternos() {
     genCookies();
 }
 
-void Aternos::ServerStatus(Aternos::Server server) {
+std::optional<Aternos::Server> Aternos::queryServer(std::string query) {
+    for (auto& server: Servers) {
+        if (server.name == query) {
+            return server;
+        }
+    }
+    getServers();
+    for (auto& server: Servers) {
+        if (server.name == query) {
+            return server;
+        }
+    }
+    return std::nullopt;
+}
+
+std::string Aternos::ServerStatus(Aternos::Server server) {
     enterServerSession(server);
     cpr::Response r = request(buildURL("/ajax/server/get-status"));
-    std::cout << r.text << "\n";
+    nlohmann::json j = nlohmann::json::parse(r.text)["data"];
+    std::string status = j["label"];
+    std::replace(status.begin(), status.end(), '\"', '\0');
+    return status;
 }
 
 void Aternos::enterServerSession(Aternos::Server server) {
@@ -43,7 +70,9 @@ std::vector<Aternos::Server> Aternos::getServers() {
                 if (xmlHasProp(child, (xmlChar*)"data-id") != nullptr) { server.id = (char*)xmlGetProp(child, (xmlChar*)"data-id"); break; }
                 else { child = child->next; }
             }
-            Servers.emplace_back(server);
+            bool temp = false;
+            for (auto Server:Servers) { if (temp == false and Server==server) { temp = true; } }
+            if (temp == false) { Servers.emplace_back(server); }
         }
     }
     webparser.cleanWebParser();
