@@ -7,6 +7,7 @@ Requirements: <br>
 [cryptopp-cmake](https://github.com/abdes/cryptopp-cmake): Used to encrypt MD5, required to log in. <br>
 [cmake](https://cmake.org/): Used to build the project. <br>
 [libxml2](https://github.com/GNOME/libxml2): Used to parse server list. <br>
+[json](https://github.com/nlohmann/json) Used for JSON parsing. <br>
 ```
 $ git clone https://github.com/SuspiciousDuck/aternosapi
 $ cd aternosapi
