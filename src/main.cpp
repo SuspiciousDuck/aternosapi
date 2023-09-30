@@ -8,6 +8,5 @@ int main() {
     auto response = aternos.login("username", "password");
     if (!response.success) { std::cout << "Failed to log in: "+response.reason+"\n"; return 1; }
     std::cout << "Logged in successfully\n";
-    aternos.ServerAddress(aternos.queryServer("watafack").value());
     return 0;
 }
