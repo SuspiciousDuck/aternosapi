@@ -5,8 +5,9 @@
 int main() {
     std::cout << "Initializing...\n";
     Aternos aternos;
-    bool success = aternos.login("username", "password");
-    if (!success) { std::cout << "Failed to log in\n"; return 1; }
+    auto response = aternos.login("username", "password");
+    if (!response.success) { std::cout << "Failed to log in: "+response.reason+"\n"; return 1; }
     std::cout << "Logged in successfully\n";
+    aternos.ServerAddress(aternos.queryServer("watafack").value());
     return 0;
 }

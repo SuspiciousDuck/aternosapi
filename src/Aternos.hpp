@@ -10,12 +10,17 @@ class Aternos {
         std::string name;
         std::string id;
     };
+    struct loginResponse {
+        bool success;
+        std::string reason;
+    };
     Aternos();
-    bool login(std::string, std::string);
+    loginResponse login(std::string, std::string);
     std::vector<Server> getServers();
     cpr::Response request(std::string);
     cpr::Response post(std::string, std::string);
     std::string ServerStatus(Server);
+    std::string ServerAddress(Server);
     std::optional<Server> queryServer(std::string);
     private:
     std::string FindLineWithString(const std::string&, const std::string&);

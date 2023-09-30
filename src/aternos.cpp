@@ -42,6 +42,16 @@ std::optional<Aternos::Server> Aternos::queryServer(std::string query) {
     return std::nullopt;
 }
 
+std::string Aternos::ServerAddress(Aternos::Server server) {
+    enterServerSession(server);
+    cpr::Response r = request(buildURL("/ajax/server/get-status"));
+    nlohmann::json j = nlohmann::json::parse(r.text)["data"];
+    for (auto obj:j.items()) {
+        std::cout << obj.key() << ", " << obj.value();
+    }
+    return j["port"];
+}
+
 std::string Aternos::ServerStatus(Aternos::Server server) {
     enterServerSession(server);
     cpr::Response r = request(buildURL("/ajax/server/get-status"));
@@ -119,7 +129,7 @@ std::string Aternos::buildURL(std::string url) {
     return "https://aternos.org"+result;
 }
 
-bool Aternos::login(std::string user, std::string pass) { std::string password = encrypt.MD5(pass);
+Aternos::loginResponse Aternos::login(std::string user, std::string pass) { std::string password = encrypt.MD5(pass);
     cpr::Response r = post(LOGINURL, "user="+user+"&password="+password);
     for (auto& cookie: r.cookies) {
         if (cookie.GetName().find("SESSION") != std::string::npos) {
@@ -127,7 +137,11 @@ bool Aternos::login(std::string user, std::string pass) { std::string password =
             genCookies();
         }
     }
-    return cookies.find("SESSION") != std::string::npos;
+    nlohmann::json j = nlohmann::json::parse(r.text);
+    Aternos::loginResponse result;
+    result.success = j["success"];
+    if (!result.success) { result.reason = j["error"]; }
+    return result;
 }
 
 std::string Aternos::FindLineWithString(const std::string& input, const std::string& searchString) {
