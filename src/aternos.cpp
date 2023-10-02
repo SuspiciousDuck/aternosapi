@@ -42,17 +42,18 @@ std::optional<Aternos::Server> Aternos::queryServer(std::string query) {
     return std::nullopt;
 }
 
-std::string Aternos::ServerAddress(Aternos::Server server) {
+std::string Aternos::serverAddress(Aternos::Server server) {
+    if (!server.ip.empty()) { return server.ip; }
     enterServerSession(server);
     cpr::Response r = request(buildURL("/ajax/server/get-status"));
     nlohmann::json j = nlohmann::json::parse(r.text)["data"];
-    for (auto obj:j.items()) {
-        std::cout << obj.key() << ", " << obj.value();
-    }
-    return j["port"];
+    std::string result = nlohmann::to_string(j["displayAddress"])+":"+nlohmann::to_string(j["port"]);
+    result.erase(std::remove(result.begin(), result.end(), '\"'), result.end());
+    server.ip = result;
+    return result;
 }
 
-std::string Aternos::ServerStatus(Aternos::Server server) {
+std::string Aternos::serverStatus(Aternos::Server server) {
     enterServerSession(server);
     cpr::Response r = request(buildURL("/ajax/server/get-status"));
     nlohmann::json j = nlohmann::json::parse(r.text)["data"];
@@ -64,6 +65,33 @@ std::string Aternos::ServerStatus(Aternos::Server server) {
 void Aternos::enterServerSession(Aternos::Server server) {
     SERVER=server.id;
     genCookies();
+}
+
+std::vector<std::string> Aternos::serverPlayers(Aternos::Server server) { std::vector<std::string> result;
+    enterServerSession(server);
+    cpr::Response r = request(buildURL("/ajax/server/get-status"));
+    nlohmann::json j = nlohmann::json::parse(r.text)["data"];
+    result.push_back(nlohmann::to_string(j["players"]));
+    if (result[0] != "0") {
+        for (auto& name: j["playerlist"]) {
+            result.push_back(name);
+        }
+    }
+    return result;
+}
+
+bool Aternos::startServer(Aternos::Server server) {
+    enterServerSession(server);
+    cpr::Response r = request(buildURL("/ajax/server/start"));
+    nlohmann::json j = nlohmann::json::parse(r.text);
+    return j["success"];
+}
+
+bool Aternos::stopServer(Aternos::Server server) {
+    enterServerSession(server);
+    cpr::Response r = request(buildURL("/ajax/server/stop"));
+    nlohmann::json j = nlohmann::json::parse(r.text);
+    return j["success"];
 }
 
 std::vector<Aternos::Server> Aternos::getServers() {

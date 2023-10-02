@@ -2,6 +2,7 @@
 #include <string>
 #include <cpr/cpr.h>
 #include <optional>
+#include <vector>
 #include "Encryption.hpp"
 
 class Aternos {
@@ -9,6 +10,7 @@ class Aternos {
     struct Server {
         std::string name;
         std::string id;
+        std::string ip;
     };
     struct loginResponse {
         bool success;
@@ -19,9 +21,12 @@ class Aternos {
     std::vector<Server> getServers();
     cpr::Response request(std::string);
     cpr::Response post(std::string, std::string);
-    std::string ServerStatus(Server);
-    std::string ServerAddress(Server);
+    std::string serverStatus(Server);
+    std::string serverAddress(Server);
     std::optional<Server> queryServer(std::string);
+    std::vector<std::string> serverPlayers(Server);
+    bool startServer(Server);
+    bool stopServer(Server);
     private:
     std::string FindLineWithString(const std::string&, const std::string&);
     std::string getStringBetweenSymbols(const std::string&, char, char);

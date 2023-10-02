@@ -3,6 +3,7 @@ project(aternosapi)
 include(${CMAKE_CURRENT_SOURCE_DIR}/FindQuickJS.cmake)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_CXX_FLAGS "-O3")
 
 find_package(cpr REQUIRED)
 find_package(cryptopp REQUIRED)
