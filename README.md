@@ -48,3 +48,9 @@ int main() {
     return 0;
 }
 ```
+# CMAKE
+I haven't made a FindAternos.cmake file, so for now you can use this to include it in your library.
+```cmake
+find_library(aternos_lib NAMES aternosapi libaternosapi PATH_SUFFIXES "aternosapi" REQUIRED)
+```
+and use `${aternos_lib}` in your `target_link_libraries`
