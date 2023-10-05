@@ -14,8 +14,14 @@ find_quickjs()
 configure_quickjs()
 
 include_directories(src)
-file(GLOB files_aternos CONFIGURE_DEPENDS "src/*.h" "src/*.cpp" "src/*.c")
+file(GLOB files_aternos "src/*.cpp" "src/*.c")
+file(GLOB headers "src/*.h" "src/*.hpp")
 
-add_executable(scraper ${files_aternos})
-target_include_directories(scraper PRIVATE ${QUICKJSPP_INCLUDE_DIRS})
-target_link_libraries(scraper PRIVATE ${QUICKJS_LIBRARY} ${LIBXML2_LIBRARIES} cpr::cpr cryptopp::cryptopp)
+add_library(aternosapi SHARED ${files_aternos})
+target_include_directories(aternosapi PUBLIC ${QUICKJSPP_INCLUDE_DIRS})
+target_link_libraries(aternosapi PUBLIC ${QUICKJS_LIBRARY} ${LIBXML2_LIBRARIES} cpr::cpr cryptopp::cryptopp)
+set_target_properties(aternosapi PROPERTIES
+    PUBLIC_HEADER "${headers}"
+)
+
+install(TARGETS aternosapi LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/aternosapi PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/aternosapi)
