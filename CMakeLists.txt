@@ -24,4 +24,4 @@ set_target_properties(aternosapi PROPERTIES
     PUBLIC_HEADER "${headers}"
 )
 
-install(TARGETS aternosapi LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/aternosapi PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/aternosapi)
+install(TARGETS aternosapi LIBRARY DESTINATION lib/aternosapi PUBLIC_HEADER DESTINATION include/aternosapi)

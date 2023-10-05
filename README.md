@@ -13,7 +13,7 @@ $ git clone "https://github.com/SuspiciousDuck/aternosapi"
 $ cd aternosapi
 $ mkdir build
 $ cmake -B./build
-$ cmake --install ./build --prefix /usr
+# cmake --install ./build --prefix /usr
 ```
 # Usage
 Include the library in your main file. <br>
