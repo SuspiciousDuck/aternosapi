@@ -10,15 +10,13 @@ find_package(cryptopp REQUIRED)
 find_package(QuickJS REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_quickjs()
-configure_quickjs()
 
 include_directories(src)
 file(GLOB files_aternos "src/*.cpp" "src/*.c")
 file(GLOB headers "src/*.h" "src/*.hpp")
 
 add_library(aternosapi SHARED ${files_aternos})
-target_include_directories(aternosapi PUBLIC ${QUICKJSPP_INCLUDE_DIRS})
+target_include_directories(aternosapi PUBLIC ${QUICKJSPP_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIRS})
 target_link_libraries(aternosapi PUBLIC ${QUICKJS_LIBRARY} ${LIBXML2_LIBRARIES} cpr::cpr cryptopp::cryptopp)
 set_target_properties(aternosapi PROPERTIES
     PUBLIC_HEADER "${headers}"
