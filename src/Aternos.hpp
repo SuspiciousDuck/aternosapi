@@ -3,6 +3,7 @@
 #include <cpr/cpr.h>
 #include <optional>
 #include <vector>
+#include "Requests.hpp"
 #include "Encryption.hpp"
 
 class Aternos {
@@ -19,8 +20,6 @@ class Aternos {
     Aternos();
     loginResponse login(std::string, std::string);
     std::vector<Server> getServers();
-    cpr::Response request(std::string);
-    cpr::Response post(std::string, std::string);
     std::string serverStatus(Server);
     std::string serverAddress(Server);
     std::optional<Server> queryServer(std::string);
@@ -36,6 +35,7 @@ class Aternos {
     void enterServerSession(Server);
     std::string buildURL(std::string);
     std::vector<Server> Servers;
-    std::string SERVER, SESSION, AJAX_TOKEN, gen_token, LOGINURL, cookies;
+    std::string SERVER, SESSION, AJAX_TOKEN, gen_token, LOGINURL;
     Encryption encrypt;
+    Requests rq;
 };

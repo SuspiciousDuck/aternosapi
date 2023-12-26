@@ -1,12 +1,10 @@
 #include <string>
-#include <iostream>
 #include <cpr/cpr.h>
-#include <optional>
-#include <algorithm>
 #include <nlohmann/json.hpp>
 #include "Aternos.hpp"
 #include "Javascript.hpp"
 #include "Encryption.hpp"
+#include "Requests.hpp"
 #include "WebParser.hpp"
 
 bool operator==(const Aternos::Server& lhs, const Aternos::Server& rhs) {
@@ -17,7 +15,6 @@ bool operator==(const Aternos::Server& lhs, const Aternos::Server& rhs) {
 }
 
 Aternos::Aternos() {
-    encrypt = Encryption();
     cpr::Header headers = {{"User-Agent","Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0"}};
     cpr::Response response = cpr::Get(cpr::Url{"https://aternos.org/go"},headers);
 
@@ -45,7 +42,7 @@ std::optional<Aternos::Server> Aternos::queryServer(std::string query) {
 std::string Aternos::serverAddress(Aternos::Server server) {
     if (!server.ip.empty()) { return server.ip; }
     enterServerSession(server);
-    cpr::Response r = request(buildURL("/ajax/server/get-status"));
+    cpr::Response r = rq.request(buildURL("/ajax/server/get-status"),true);
     nlohmann::json j = nlohmann::json::parse(r.text)["data"];
     std::string result = nlohmann::to_string(j["displayAddress"])+":"+nlohmann::to_string(j["port"]);
     result.erase(std::remove(result.begin(), result.end(), '\"'), result.end());
@@ -55,7 +52,7 @@ std::string Aternos::serverAddress(Aternos::Server server) {
 
 std::string Aternos::serverStatus(Aternos::Server server) {
     enterServerSession(server);
-    cpr::Response r = request(buildURL("/ajax/server/get-status"));
+    cpr::Response r = rq.request(buildURL("/ajax/server/get-status"),true);
     nlohmann::json j = nlohmann::json::parse(r.text)["data"];
     std::string status = j["label"];
     std::replace(status.begin(), status.end(), '\"', '\0');
@@ -69,7 +66,7 @@ void Aternos::enterServerSession(Aternos::Server server) {
 
 std::vector<std::string> Aternos::serverPlayers(Aternos::Server server) { std::vector<std::string> result;
     enterServerSession(server);
-    cpr::Response r = request(buildURL("/ajax/server/get-status"));
+    cpr::Response r = rq.request(buildURL("/ajax/server/get-status"),true);
     nlohmann::json j = nlohmann::json::parse(r.text)["data"];
     result.push_back(nlohmann::to_string(j["players"]));
     if (result[0] != "0") {
@@ -82,20 +79,20 @@ std::vector<std::string> Aternos::serverPlayers(Aternos::Server server) { std::v
 
 bool Aternos::startServer(Aternos::Server server) {
     enterServerSession(server);
-    cpr::Response r = request(buildURL("/ajax/server/start"));
+    cpr::Response r = rq.request(buildURL("/ajax/server/start"),true);
     nlohmann::json j = nlohmann::json::parse(r.text);
     return j["success"];
 }
 
 bool Aternos::stopServer(Aternos::Server server) {
     enterServerSession(server);
-    cpr::Response r = request(buildURL("/ajax/server/stop"));
+    cpr::Response r = rq.request(buildURL("/ajax/server/stop"),true);
     nlohmann::json j = nlohmann::json::parse(r.text);
     return j["success"];
 }
 
 std::vector<Aternos::Server> Aternos::getServers() {
-    std::string html = request("https://aternos.org/servers").text;
+    std::string html = rq.request("https://aternos.org/servers",true).text;
     WebParser webparser{html};
     std::optional<xmlNodeSetPtr> nodes = webparser.EvalXPath("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" servercard \")]");
     if (nodes != nullptr) {
@@ -117,21 +114,6 @@ std::vector<Aternos::Server> Aternos::getServers() {
     return Servers;
 }
 
-cpr::Response Aternos::request(std::string url) {
-    cpr::Response response = cpr::Get(cpr::Url{url},
-                                      cpr::Header{{"User-Agent","Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0"}},
-                                      cpr::Header{{"Cookie", cookies}});
-    return response;
-}
-
-cpr::Response Aternos::post(std::string url, std::string data) {
-    cpr::Response r = cpr::Post(cpr::Url{url},
-                   cpr::Body{data},
-                   cpr::Header{{"Cookie", cookies}},
-                   cpr::Header{{"User-Agent","Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0"}});
-    return r;
-}
-
 void Aternos::legitAjax(std::string html) { std::string result = getStringBetweenSymbols(FindLineWithString(html, "window[\"AJAX_TOKEN\"]"), '?', ':');
     Javascript javascript;
     AJAX_TOKEN = javascript.eval(result);
@@ -146,19 +128,18 @@ void Aternos::generateAjaxToken() {
 void Aternos::genCookies() {
     std::string key = gen_token.substr(0, gen_token.find(':')),
     value = gen_token.substr(gen_token.find(':') + 1);
-    cookies = "ATERNOS_SEC_"+key+"="+value+"; ";
-    if (!SESSION.empty()) { cookies += "ATERNOS_SESSION="+SESSION+"; "; }
-    if (!SERVER.empty()) { cookies += "ATERNOS_SERVER="+SERVER+"; "; }
+    rq.cookies = "ATERNOS_SEC_"+key+"="+value+"; ";
+    if (!SESSION.empty()) { rq.cookies += "ATERNOS_SESSION="+SESSION+"; "; }
+    if (!SERVER.empty()) { rq.cookies += "ATERNOS_SERVER="+SERVER+"; "; }
 }
 
 std::string Aternos::buildURL(std::string url) {
-    std::string result = url+"?SEC=";
-    result += gen_token + "&TOKEN="+AJAX_TOKEN;
+    std::string result = url+"?TOKEN="+AJAX_TOKEN+"&SEC="+gen_token;
     return "https://aternos.org"+result;
 }
 
 Aternos::loginResponse Aternos::login(std::string user, std::string pass) { std::string password = encrypt.MD5(pass);
-    cpr::Response r = post(LOGINURL, "user="+user+"&password="+password);
+    cpr::Response r = rq.MultiPart(LOGINURL, {{"username", user}, {"password", password}}, true);
     for (auto& cookie: r.cookies) {
         if (cookie.GetName().find("SESSION") != std::string::npos) {
             SESSION = cookie.GetValue();
