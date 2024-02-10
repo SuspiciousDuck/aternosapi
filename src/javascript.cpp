@@ -1,8 +1,7 @@
 #include <cstring>
 #include <string>
-#include <algorithm>
 #include <quickjs/quickjs.h>
-#include "Javascript.hpp"
+#include "aternosapi/Javascript.hpp"
 
 std::string Javascript::eval(std::string g) {
     JSRuntime *rt = JS_NewRuntime();

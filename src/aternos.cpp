@@ -1,11 +1,11 @@
 #include <string>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
-#include "Aternos.hpp"
-#include "Javascript.hpp"
-#include "Encryption.hpp"
-#include "Requests.hpp"
-#include "WebParser.hpp"
+#include "aternosapi/Aternos.hpp"
+#include "aternosapi/Javascript.hpp"
+#include "aternosapi/Encryption.hpp"
+#include "aternosapi/Requests.hpp"
+#include "aternosapi/WebParser.hpp"
 
 bool operator==(const Aternos::Server& lhs, const Aternos::Server& rhs) {
     bool result = true;

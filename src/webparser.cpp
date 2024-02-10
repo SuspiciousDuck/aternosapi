@@ -1,7 +1,7 @@
 #include <string>
 #include <libxml2/libxml/HTMLparser.h>
 #include <libxml2/libxml/xpath.h>
-#include "WebParser.hpp"
+#include "aternosapi/WebParser.hpp"
 
 WebParser::WebParser(std::string html) {
 	doc = htmlReadDoc((const xmlChar*)html.c_str(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);

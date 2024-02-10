@@ -3,8 +3,8 @@
 #include <cpr/cpr.h>
 #include <optional>
 #include <vector>
-#include "Requests.hpp"
-#include "Encryption.hpp"
+#include "aternosapi/Requests.hpp"
+#include "aternosapi/Encryption.hpp"
 
 class Aternos {
     public:

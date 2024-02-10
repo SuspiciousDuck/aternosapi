@@ -2,7 +2,7 @@
 #include <string>
 #include <cpr/cpr.h>
 #include <regex>
-#include "Requests.hpp"
+#include "aternosapi/Requests.hpp"
 
 Requests::Requests() {
     cookies = "";

@@ -2,7 +2,7 @@
 #include <cryptopp/md5.h>
 #include <cryptopp/hex.h>
 #include <string>
-#include "Encryption.hpp"
+#include "aternosapi/Encryption.hpp"
 
 Encryption::Encryption() { srand((time(0))); }
 
